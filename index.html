@@ -45,14 +45,27 @@
       </div>
     </div>
 
-    <div class="toolbar" role="tablist">
-      <button type="button" data-feed="top" class="active">Front page</button>
-      <button type="button" data-feed="new">Newest</button>
+    <div id="list-view">
+      <div class="toolbar" role="tablist">
+        <button type="button" data-feed="top" class="active">Front page</button>
+        <button type="button" data-feed="new">Newest</button>
+      </div>
+
+      <ul id="story-list" class="story-list"></ul>
+      <div id="status" class="status">Loading...</div>
+      <div class="load-more-wrap">
+        <button type="button" id="load-more" style="display:none">Load more</button>
+      </div>
     </div>
 
-    <ul id="story-list" class="story-list"></ul>
-    <div id="status" class="status">Loading...</div>
+    <div id="item-view" style="display:none"></div>
   </main>
+
+  <footer class="site-footer">
+    Data from <a href="https://news.ycombinator.com/" target="_blank" rel="noopener">Hacker News</a>
+    via the <a href="https://hn.algolia.com/api" target="_blank" rel="noopener">Algolia HN Search API</a>.
+    Not affiliated with Y Combinator.
+  </footer>
 
   <script src="./scripts/theme.js"></script>
   <script src="./scripts/hn.js"></script>
