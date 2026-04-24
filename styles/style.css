@@ -9,6 +9,11 @@
   --accent: #ffffff;
   --error: #2b0a00;
   --link-meta: rgba(255, 255, 255, 0.85);
+
+  --font: 'VT323', monospace;
+  --base-size: 22px;
+  --line-height: 1.4;
+  --measure: 760px;
 }
 
 [data-theme="dark"] {
@@ -24,20 +29,46 @@
   --link-meta: rgba(232, 232, 232, 0.75);
 }
 
+[data-theme="sepia"] {
+  --bg: #f4ecd8;
+  --fg: #5b4636;
+  --muted: rgba(91, 70, 54, 0.75);
+  --rule: rgba(91, 70, 54, 0.3);
+  --btn-bg: rgba(91, 70, 54, 0.08);
+  --btn-bg-strong: rgba(91, 70, 54, 0.18);
+  --btn-border: rgba(91, 70, 54, 0.4);
+  --accent: #b07b3a;
+  --error: #8a2a14;
+  --link-meta: rgba(91, 70, 54, 0.8);
+}
+
+[data-font="serif"] {
+  --font: 'Lora', Georgia, 'Times New Roman', serif;
+  --base-size: 18px;
+  --line-height: 1.6;
+}
+
+[data-font="sans"] {
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --base-size: 17px;
+  --line-height: 1.55;
+}
+
 html, body { height: 100%; }
 
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: 'VT323', sans-serif;
+  font-family: var(--font);
   margin: 0;
 }
 
 .page {
-  max-width: 760px;
+  max-width: var(--measure);
   margin: 60px auto;
   padding: 0 24px;
-  font-size: 22px;
+  font-size: var(--base-size);
+  line-height: var(--line-height);
 }
 
 .page-header {
@@ -46,34 +77,42 @@ body {
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .page-header h1 {
   font-weight: normal;
-  font-size: 48px;
+  font-size: 2.2em;
   margin: 0;
   flex: 1 1 auto;
+  line-height: 1.1;
 }
 
 .back-link {
   color: var(--fg);
   text-decoration: none;
-  font-size: 20px;
-  opacity: 0.9;
+  font-size: 0.9em;
+  opacity: 0.85;
 }
 
 .back-link:hover { opacity: 1; }
 
-.theme-toggle {
+.reader-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+  font-size: 0.85em;
+}
+
+.seg {
   display: inline-flex;
   border: 1px solid var(--btn-border);
   border-radius: 4px;
   overflow: hidden;
-  font-size: 18px;
 }
 
-.theme-toggle button {
+.seg button {
   font-family: inherit;
   font-size: inherit;
   background: transparent;
@@ -81,15 +120,15 @@ body {
   border: 0;
   padding: 4px 10px;
   cursor: pointer;
-  line-height: 1;
+  line-height: 1.2;
 }
 
-.theme-toggle button + button {
+.seg button + button {
   border-left: 1px solid var(--btn-border);
 }
 
-.theme-toggle button.active,
-.theme-toggle button:hover {
+.seg button.active,
+.seg button:hover {
   background: var(--btn-bg);
 }
 
@@ -98,7 +137,7 @@ body {
   gap: 8px;
   align-items: center;
   margin-bottom: 16px;
-  font-size: 20px;
+  font-size: 0.95em;
 }
 
 .toolbar button {
@@ -136,14 +175,14 @@ body {
   content: counter(story) ".";
   text-align: right;
   opacity: 0.7;
-  font-size: 20px;
+  font-size: 0.95em;
   padding-top: 2px;
 }
 
 .story-title {
   display: block;
-  font-size: 24px;
-  line-height: 1.2;
+  font-size: 1.1em;
+  line-height: 1.3;
   color: var(--fg);
   text-decoration: none;
 }
@@ -153,13 +192,13 @@ body {
 }
 
 .story-host {
-  font-size: 16px;
+  font-size: 0.78em;
   opacity: 0.75;
   margin-left: 8px;
 }
 
 .story-meta {
-  font-size: 18px;
+  font-size: 0.85em;
   color: var(--link-meta);
   margin-top: 4px;
 }
@@ -173,7 +212,7 @@ body {
 .status {
   text-align: center;
   padding: 32px 0;
-  font-size: 22px;
+  font-size: 1em;
   opacity: 0.85;
 }
 
@@ -184,8 +223,6 @@ body {
 
 @media (max-width: 600px) {
   .page { margin: 24px auto; }
-  .page-header h1 { font-size: 36px; }
-  .story-title { font-size: 20px; }
-  .story-meta { font-size: 16px; }
+  .page-header h1 { font-size: 1.7em; }
   .story-host { display: block; margin-left: 0; }
 }

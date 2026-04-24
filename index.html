@@ -5,7 +5,9 @@
   <meta charset="UTF-8">
   <title>HN | Farshad Ghorbani</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Lora:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="./assets/Farshad-Ghorbani.svg">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <link rel="stylesheet" href="./styles/style.css">
@@ -13,7 +15,11 @@
     (function () {
       try {
         var t = localStorage.getItem('theme');
-        if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+        if (t === 'dark' || t === 'light' || t === 'sepia')
+          document.documentElement.setAttribute('data-theme', t);
+        var f = localStorage.getItem('font');
+        if (f === 'vt323' || f === 'serif' || f === 'sans')
+          document.documentElement.setAttribute('data-font', f);
       } catch (e) {}
     })();
   </script>
@@ -24,11 +30,20 @@
     <header class="page-header">
       <a href="https://thefarshad.com" class="back-link">&larr; home</a>
       <h1>HN</h1>
-      <div class="theme-toggle" role="group" aria-label="Theme">
-        <button type="button" data-theme="light" title="Light theme">&#9788;</button>
-        <button type="button" data-theme="dark" title="Dark theme">&#9790;</button>
-      </div>
     </header>
+
+    <div class="reader-controls">
+      <div class="seg" data-control="theme" role="group" aria-label="Theme">
+        <button type="button" data-value="light" title="Light (yellow)">&#9728;</button>
+        <button type="button" data-value="sepia" title="Sepia (paper)">&#9681;</button>
+        <button type="button" data-value="dark"  title="Dark (ink)">&#9790;</button>
+      </div>
+      <div class="seg" data-control="font" role="group" aria-label="Font">
+        <button type="button" data-value="vt323" title="VT323 &mdash; retro" style="font-family:'VT323',monospace">Aa</button>
+        <button type="button" data-value="serif" title="Lora &mdash; serif" style="font-family:'Lora',Georgia,serif">Aa</button>
+        <button type="button" data-value="sans"  title="Inter &mdash; sans-serif" style="font-family:'Inter',system-ui,sans-serif">Aa</button>
+      </div>
+    </div>
 
     <div class="toolbar" role="tablist">
       <button type="button" data-feed="top" class="active">Front page</button>
