@@ -1,6 +1,7 @@
 (function () {
   const API = 'https://hn.algolia.com/api/v1';
   const PAGE_SIZE = 30;
+  const BM_KEY = 'hn-bookmarks';
 
   const listView = document.getElementById('list-view');
   const itemView = document.getElementById('item-view');
@@ -57,30 +58,131 @@
     window.scrollTo(0, 0);
   }
 
-  // ---------- list view ----------
+  // ---------- bookmarks ----------
 
-  function renderStory(hit, index) {
-    const url = hit.url || ('https://news.ycombinator.com/item?id=' + hit.objectID);
-    const h = host(hit.url);
+  function getBookmarks() {
+    try {
+      const raw = localStorage.getItem(BM_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch { return []; }
+  }
+
+  function setBookmarks(arr) {
+    try { localStorage.setItem(BM_KEY, JSON.stringify(arr)); }
+    catch (e) {}
+  }
+
+  function isBookmarked(id) {
+    return getBookmarks().some(b => String(b.id) === String(id));
+  }
+
+  function toggleBookmark(snapshot) {
+    const id = String(snapshot.id);
+    const arr = getBookmarks();
+    const idx = arr.findIndex(b => String(b.id) === id);
+    if (idx >= 0) {
+      arr.splice(idx, 1);
+    } else {
+      arr.unshift(Object.assign({}, snapshot, { savedAt: Math.floor(Date.now() / 1000) }));
+    }
+    setBookmarks(arr);
+    refreshBookmarkButtons(id);
+  }
+
+  function refreshBookmarkButtons(id) {
+    const saved = isBookmarked(id);
+    document.querySelectorAll('.bookmark-btn[data-id="' + id + '"]').forEach(btn => {
+      btn.classList.toggle('active', saved);
+      btn.setAttribute('aria-pressed', saved ? 'true' : 'false');
+      btn.title = saved ? 'Remove bookmark' : 'Bookmark';
+      btn.textContent = saved ? '★' : '☆';
+    });
+  }
+
+  function snapshotFromHit(hit) {
+    return {
+      id: hit.objectID,
+      title: hit.title,
+      url: hit.url || null,
+      author: hit.author || null,
+      points: hit.points || 0,
+      created_at_i: hit.created_at_i || null,
+      num_comments: hit.num_comments || 0,
+    };
+  }
+
+  function snapshotFromItem(item) {
+    return {
+      id: item.id,
+      title: item.title,
+      url: item.url || null,
+      author: item.author || null,
+      points: item.points || 0,
+      created_at_i: item.created_at_i || null,
+      num_comments: countComments(item.children),
+    };
+  }
+
+  function countComments(children) {
+    if (!children) return 0;
+    let n = 0;
+    for (const c of children) n += 1 + countComments(c.children);
+    return n;
+  }
+
+  // ---------- list view rendering ----------
+
+  function bookmarkButtonHtml(snapshot) {
+    const saved = isBookmarked(snapshot.id);
+    const id = escapeHtml(String(snapshot.id));
+    const dataAttr = escapeHtml(JSON.stringify(snapshot));
+    return (
+      '<button type="button" class="bookmark-btn' + (saved ? ' active' : '') + '"' +
+        ' data-id="' + id + '" data-snap="' + dataAttr + '"' +
+        ' title="' + (saved ? 'Remove bookmark' : 'Bookmark') + '"' +
+        ' aria-pressed="' + (saved ? 'true' : 'false') + '">' +
+        (saved ? '★' : '☆') +
+      '</button>'
+    );
+  }
+
+  function renderStorySnapshot(s) {
+    const url = s.url || ('https://news.ycombinator.com/item?id=' + s.id);
+    const h = host(s.url);
     const li = document.createElement('li');
     li.className = 'story';
     li.innerHTML =
-      '<div>' +
-        '<a class="story-title" href="' + url + '" target="_blank" rel="noopener">' +
-          escapeHtml(hit.title) +
+      '<div class="story-main">' +
+        '<a class="story-title" href="' + escapeHtml(url) + '" target="_blank" rel="noopener">' +
+          escapeHtml(s.title || '(no title)') +
         '</a>' +
         (h ? '<span class="story-host">(' + escapeHtml(h) + ')</span>' : '') +
         '<div class="story-meta">' +
-          (hit.points || 0) + ' points by ' + escapeHtml(hit.author || 'unknown') +
-          ' &middot; ' + timeAgo(hit.created_at_i) +
-          ' &middot; <a href="#item/' + hit.objectID + '">' +
-            (hit.num_comments || 0) + ' comments</a>' +
+          (s.points || 0) + ' points by ' + escapeHtml(s.author || 'unknown') +
+          (s.created_at_i ? ' &middot; ' + timeAgo(s.created_at_i) : '') +
+          ' &middot; <a href="#item/' + encodeURIComponent(s.id) + '">' +
+            (s.num_comments || 0) + ' comments</a>' +
         '</div>' +
-      '</div>';
+      '</div>' +
+      '<div class="story-actions">' + bookmarkButtonHtml(s) + '</div>';
     return li;
   }
 
+  function loadSaved() {
+    list.innerHTML = '';
+    loadMoreBtn.style.display = 'none';
+    const saved = getBookmarks();
+    if (saved.length === 0) {
+      setStatus('No bookmarks yet. Tap the ☆ on any story to save it here.');
+      return;
+    }
+    saved.forEach(s => list.appendChild(renderStorySnapshot(s)));
+    setStatus('');
+  }
+
   async function loadMore() {
+    if (state.feed === 'saved') return;
     if (state.loading || state.exhausted) return;
     state.loading = true;
     loadMoreBtn.disabled = true;
@@ -103,8 +205,7 @@
         return;
       }
 
-      const start = state.page * PAGE_SIZE;
-      hits.forEach((hit, i) => list.appendChild(renderStory(hit, start + i)));
+      hits.forEach(hit => list.appendChild(renderStorySnapshot(snapshotFromHit(hit))));
 
       if (hits.length < PAGE_SIZE || state.page + 1 >= (data.nbPages || 0)) {
         state.exhausted = true;
@@ -129,7 +230,8 @@
     state.exhausted = false;
     list.innerHTML = '';
     loadMoreBtn.style.display = 'none';
-    loadMore();
+    if (feed === 'saved') loadSaved();
+    else loadMore();
   }
 
   // ---------- item / comments view ----------
@@ -160,6 +262,7 @@
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const item = await res.json();
 
+      const snap = snapshotFromItem(item);
       const title = escapeHtml(item.title || '(no title)');
       const targetUrl = item.url || ('https://news.ycombinator.com/item?id=' + item.id);
       const h = host(item.url);
@@ -174,10 +277,13 @@
       itemView.innerHTML =
         '<a class="back-to-list" href="#">&larr; back to stories</a>' +
         '<article class="thread">' +
-          '<h2 class="thread-title">' +
-            '<a href="' + targetUrl + '" target="_blank" rel="noopener">' + title + '</a>' +
-            (h ? ' <span class="story-host">(' + escapeHtml(h) + ')</span>' : '') +
-          '</h2>' +
+          '<div class="thread-head">' +
+            '<h2 class="thread-title">' +
+              '<a href="' + escapeHtml(targetUrl) + '" target="_blank" rel="noopener">' + title + '</a>' +
+              (h ? ' <span class="story-host">(' + escapeHtml(h) + ')</span>' : '') +
+            '</h2>' +
+            '<div class="thread-actions">' + bookmarkButtonHtml(snap) + '</div>' +
+          '</div>' +
           '<div class="thread-meta">' + meta + '</div>' +
           text +
           (comments
@@ -195,11 +301,8 @@
 
   function route() {
     const m = (location.hash || '').match(/^#item\/(\d+)/);
-    if (m) {
-      loadItem(m[1]);
-    } else {
-      show('list');
-    }
+    if (m) loadItem(m[1]);
+    else show('list');
   }
 
   // ---------- wire up ----------
@@ -218,9 +321,25 @@
 
   loadMoreBtn.addEventListener('click', loadMore);
 
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.bookmark-btn');
+    if (!btn) return;
+    e.preventDefault();
+    try {
+      const snap = JSON.parse(btn.dataset.snap);
+      toggleBookmark(snap);
+      if (state.feed === 'saved') {
+        const li = btn.closest('li.story');
+        if (li && !isBookmarked(snap.id)) li.remove();
+        if (list.children.length === 0) {
+          setStatus('No bookmarks yet. Tap the ☆ on any story to save it here.');
+        }
+      }
+    } catch {}
+  });
+
   window.addEventListener('hashchange', route);
 
-  // initial
   loadFeed('top');
   if (location.hash) route();
 })();
