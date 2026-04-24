@@ -1,0 +1,136 @@
+body {
+  background: #fdc114;
+  color: #FFF;
+  font-family: 'VT323', sans-serif;
+  margin: 0;
+}
+
+.page {
+  max-width: 760px;
+  margin: 60px auto;
+  padding: 0 24px;
+  font-size: 22px;
+}
+
+.page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.page-header h1 {
+  font-weight: normal;
+  font-size: 48px;
+  margin: 0;
+}
+
+.back-link {
+  color: #FFF;
+  text-decoration: none;
+  font-size: 20px;
+  opacity: 0.9;
+}
+
+.back-link:hover {
+  opacity: 1;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 20px;
+}
+
+.toolbar button {
+  font-family: inherit;
+  font-size: inherit;
+  background: rgba(0, 0, 0, 0.12);
+  color: #FFF;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+.toolbar button.active,
+.toolbar button:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.story-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: story;
+}
+
+.story {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.5);
+  counter-increment: story;
+}
+
+.story::before {
+  content: counter(story) ".";
+  text-align: right;
+  opacity: 0.7;
+  font-size: 20px;
+  padding-top: 2px;
+}
+
+.story-title {
+  display: block;
+  font-size: 24px;
+  line-height: 1.2;
+  color: #FFF;
+  text-decoration: none;
+}
+
+.story-title:hover {
+  border-bottom: 2px solid #FFF;
+}
+
+.story-host {
+  font-size: 16px;
+  opacity: 0.75;
+  margin-left: 8px;
+}
+
+.story-meta {
+  font-size: 18px;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+
+.story-meta a {
+  color: #FFF;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.status {
+  text-align: center;
+  padding: 32px 0;
+  font-size: 22px;
+  opacity: 0.85;
+}
+
+.status.error {
+  opacity: 1;
+  color: #2b0a00;
+}
+
+@media (max-width: 600px) {
+  .page { margin: 24px auto; }
+  .page-header h1 { font-size: 36px; }
+  .story-title { font-size: 20px; }
+  .story-meta { font-size: 16px; }
+  .story-host { display: block; margin-left: 0; }
+}

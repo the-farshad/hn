@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>HN | Farshad Ghorbani</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="./assets/Farshad-Ghorbani.svg">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="stylesheet" href="./styles/style.css">
+</head>
+
+<body>
+  <main class="page">
+    <header class="page-header">
+      <a href="https://thefarshad.com" class="back-link">&larr; home</a>
+      <h1>HN</h1>
+    </header>
+
+    <div class="toolbar" role="tablist">
+      <button type="button" data-feed="top" class="active">Front page</button>
+      <button type="button" data-feed="new">Newest</button>
+    </div>
+
+    <ul id="story-list" class="story-list"></ul>
+    <div id="status" class="status">Loading...</div>
+  </main>
+
+  <script src="./scripts/hn.js"></script>
+</body>
+
+</html>
