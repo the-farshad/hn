@@ -9,6 +9,14 @@
   <link rel="icon" type="image/x-icon" href="./assets/Farshad-Ghorbani.svg">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <link rel="stylesheet" href="./styles/style.css">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('theme');
+        if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
 </head>
 
 <body>
@@ -16,6 +24,10 @@
     <header class="page-header">
       <a href="https://thefarshad.com" class="back-link">&larr; home</a>
       <h1>HN</h1>
+      <div class="theme-toggle" role="group" aria-label="Theme">
+        <button type="button" data-theme="light" title="Light theme">&#9788;</button>
+        <button type="button" data-theme="dark" title="Dark theme">&#9790;</button>
+      </div>
     </header>
 
     <div class="toolbar" role="tablist">
@@ -27,6 +39,7 @@
     <div id="status" class="status">Loading...</div>
   </main>
 
+  <script src="./scripts/theme.js"></script>
   <script src="./scripts/hn.js"></script>
 </body>
 
