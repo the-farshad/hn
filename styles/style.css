@@ -48,10 +48,32 @@
   --line-height: 1.6;
 }
 
+[data-font="plex-serif"] {
+  --font: 'IBM Plex Serif', Georgia, 'Times New Roman', serif;
+  --base-size: 18px;
+  --line-height: 1.6;
+}
+
 [data-font="sans"] {
   --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --base-size: 17px;
   --line-height: 1.55;
+}
+
+[data-font="ubuntu"] {
+  --font: 'Ubuntu', system-ui, sans-serif;
+  --base-size: 17px;
+  --line-height: 1.55;
+}
+
+[data-font="atkinson"] {
+  --font: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --base-size: 17px;
+  --line-height: 1.55;
+}
+
+body {
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 html, body { height: 100%; }

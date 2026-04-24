@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Lora:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;600&family=Lora:ital,wght@0,400;0,600;1,400&family=Ubuntu:wght@400;700&family=VT323&display=swap" rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="./assets/Farshad-Ghorbani.svg">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <link rel="stylesheet" href="./styles/style.css">
@@ -18,7 +18,7 @@
         if (t === 'dark' || t === 'light' || t === 'sepia')
           document.documentElement.setAttribute('data-theme', t);
         var f = localStorage.getItem('font');
-        if (f === 'vt323' || f === 'serif' || f === 'sans')
+        if (['vt323','serif','plex-serif','sans','ubuntu','atkinson'].indexOf(f) >= 0)
           document.documentElement.setAttribute('data-font', f);
       } catch (e) {}
     })();
@@ -39,9 +39,12 @@
         <button type="button" data-value="dark"  title="Dark (ink)">&#9790;</button>
       </div>
       <div class="seg" data-control="font" role="group" aria-label="Font">
-        <button type="button" data-value="vt323" title="VT323 &mdash; retro" style="font-family:'VT323',monospace">Aa</button>
-        <button type="button" data-value="serif" title="Lora &mdash; serif" style="font-family:'Lora',Georgia,serif">Aa</button>
-        <button type="button" data-value="sans"  title="Inter &mdash; sans-serif" style="font-family:'Inter',system-ui,sans-serif">Aa</button>
+        <button type="button" data-value="vt323"      title="VT323 &mdash; retro"                  style="font-family:'VT323',monospace">Aa</button>
+        <button type="button" data-value="serif"      title="Lora &mdash; serif"                   style="font-family:'Lora',Georgia,serif">Aa</button>
+        <button type="button" data-value="plex-serif" title="IBM Plex Serif &mdash; serif"         style="font-family:'IBM Plex Serif',Georgia,serif">Aa</button>
+        <button type="button" data-value="sans"       title="Inter &mdash; sans-serif"             style="font-family:'Inter',system-ui,sans-serif">Aa</button>
+        <button type="button" data-value="ubuntu"     title="Ubuntu &mdash; sans-serif"            style="font-family:'Ubuntu',system-ui,sans-serif">Aa</button>
+        <button type="button" data-value="atkinson"   title="Atkinson Hyperlegible &mdash; reading" style="font-family:'Atkinson Hyperlegible',system-ui,sans-serif">Aa</button>
       </div>
     </div>
 
