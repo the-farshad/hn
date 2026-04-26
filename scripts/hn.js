@@ -10,7 +10,7 @@
   const loadMoreBtn = document.getElementById('load-more');
   const feedButtons = document.querySelectorAll('.toolbar button[data-feed]');
 
-  const state = { feed: 'top', page: 0, exhausted: false, loading: false };
+  const state = { feed: 'top', page: 0, exhausted: false, loading: false, itemId: null };
 
   // ---------- helpers ----------
 
@@ -236,27 +236,61 @@
 
   // ---------- item / comments view ----------
 
-  function renderComment(node, depth) {
+  function renderComment(node, depth, storyAuthor, itemId) {
     if (!node) return '';
     const author = node.author ? escapeHtml(node.author) : '[deleted]';
-    const meta = author + (node.created_at_i ? ' &middot; ' + timeAgo(node.created_at_i) : '');
+    const isOp = storyAuthor && node.author && node.author === storyAuthor;
+    const opBadge = isOp ? ' <span class="op-badge" title="Story author">OP</span>' : '';
+    const cid = node.id ? 'c' + node.id : '';
+    const permalink = cid ? '#item/' + encodeURIComponent(itemId) + '/' + cid : '';
+    const timeHtml = node.created_at_i
+      ? ' &middot; <a class="comment-time" href="' + permalink + '" title="Permalink">' +
+          timeAgo(node.created_at_i) + '</a>'
+      : '';
+    const descendants = countComments(node.children);
+    const replyInfo = descendants > 0
+      ? ' <span class="comment-collapsed-info">&middot; ' +
+          descendants + ' ' + (descendants === 1 ? 'reply' : 'replies') +
+        '</span>'
+      : '';
     const body = node.text || '';
     const children = (node.children || [])
-      .map(c => renderComment(c, depth + 1))
+      .map(c => renderComment(c, depth + 1, storyAuthor, itemId))
       .join('');
     const cls = 'comment depth-' + Math.min(depth, 8);
+    const idAttr = cid ? ' id="' + cid + '"' : '';
     return (
-      '<li class="' + cls + '">' +
-        '<div class="comment-meta">' + meta + '</div>' +
+      '<li class="' + cls + '"' + idAttr + '>' +
+        '<div class="comment-head" role="button" tabindex="0" aria-expanded="true">' +
+          '<button type="button" class="comment-toggle" aria-label="Collapse comment">[&minus;]</button> ' +
+          '<span class="comment-meta">' + author + opBadge + timeHtml + '</span>' +
+          replyInfo +
+        '</div>' +
         (body ? '<div class="comment-body">' + body + '</div>' : '') +
         (children ? '<ul class="comment-children">' + children + '</ul>' : '') +
       '</li>'
     );
   }
 
-  async function loadItem(id) {
+  function setCommentCollapsed(li, collapsed) {
+    li.classList.toggle('collapsed', collapsed);
+    const head = li.querySelector(':scope > .comment-head');
+    const toggle = head && head.querySelector('.comment-toggle');
+    if (head) head.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    if (toggle) {
+      toggle.innerHTML = collapsed ? '[+]' : '[−]';
+      toggle.setAttribute('aria-label', collapsed ? 'Expand comment' : 'Collapse comment');
+    }
+  }
+
+  function setAllCommentsCollapsed(collapsed) {
+    itemView.querySelectorAll('li.comment').forEach(li => setCommentCollapsed(li, collapsed));
+  }
+
+  async function loadItem(id, scrollTo) {
     show('item');
     itemView.innerHTML = '<div class="status">Loading thread...</div>';
+    state.itemId = String(id);
     try {
       const res = await fetch(API + '/items/' + encodeURIComponent(id));
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -271,8 +305,15 @@
         (item.created_at_i ? ' &middot; ' + timeAgo(item.created_at_i) : '');
       const text = item.text ? '<div class="story-text">' + item.text + '</div>' : '';
       const comments = (item.children || [])
-        .map(c => renderComment(c, 0))
+        .map(c => renderComment(c, 0, item.author, item.id))
         .join('');
+
+      const tools = comments
+        ? '<div class="comment-tools">' +
+            '<button type="button" data-action="collapse-top">Collapse threads</button>' +
+            '<button type="button" data-action="expand-all">Expand all</button>' +
+          '</div>'
+        : '';
 
       itemView.innerHTML =
         '<a class="back-to-list" href="#">&larr; back to stories</a>' +
@@ -286,10 +327,19 @@
           '</div>' +
           '<div class="thread-meta">' + meta + '</div>' +
           text +
+          tools +
           (comments
             ? '<ul class="comment-thread">' + comments + '</ul>'
             : '<div class="status">No comments yet.</div>') +
         '</article>';
+
+      if (scrollTo) {
+        const el = document.getElementById(scrollTo);
+        if (el) {
+          el.classList.add('comment-target');
+          el.scrollIntoView({ block: 'start' });
+        }
+      }
     } catch (err) {
       itemView.innerHTML =
         '<a class="back-to-list" href="#">&larr; back to stories</a>' +
@@ -300,9 +350,26 @@
   // ---------- routing ----------
 
   function route() {
-    const m = (location.hash || '').match(/^#item\/(\d+)/);
-    if (m) loadItem(m[1]);
-    else show('list');
+    const m = (location.hash || '').match(/^#item\/(\d+)(?:\/(c\d+))?/);
+    if (m) {
+      const wantId = m[1];
+      const anchor = m[2] || null;
+      if (state.itemId === wantId) {
+        if (anchor) {
+          const el = document.getElementById(anchor);
+          if (el) {
+            itemView.querySelectorAll('.comment-target').forEach(n => n.classList.remove('comment-target'));
+            el.classList.add('comment-target');
+            el.scrollIntoView({ block: 'start' });
+          }
+        }
+      } else {
+        loadItem(wantId, anchor);
+      }
+    } else {
+      state.itemId = null;
+      show('list');
+    }
   }
 
   // ---------- wire up ----------
@@ -323,19 +390,55 @@
 
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('.bookmark-btn');
-    if (!btn) return;
-    e.preventDefault();
-    try {
-      const snap = JSON.parse(btn.dataset.snap);
-      toggleBookmark(snap);
-      if (state.feed === 'saved') {
-        const li = btn.closest('li.story');
-        if (li && !isBookmarked(snap.id)) li.remove();
-        if (list.children.length === 0) {
-          setStatus('No bookmarks yet. Tap the ☆ on any story to save it here.');
+    if (btn) {
+      e.preventDefault();
+      try {
+        const snap = JSON.parse(btn.dataset.snap);
+        toggleBookmark(snap);
+        if (state.feed === 'saved') {
+          const li = btn.closest('li.story');
+          if (li && !isBookmarked(snap.id)) li.remove();
+          if (list.children.length === 0) {
+            setStatus('No bookmarks yet. Tap the ☆ on any story to save it here.');
+          }
         }
+      } catch {}
+      return;
+    }
+
+    const action = e.target.closest('[data-action]');
+    if (action && itemView.contains(action)) {
+      const a = action.dataset.action;
+      if (a === 'collapse-top') {
+        itemView.querySelectorAll('.comment-thread > li.comment')
+          .forEach(li => setCommentCollapsed(li, true));
+      } else if (a === 'expand-all') {
+        setAllCommentsCollapsed(false);
       }
-    } catch {}
+      return;
+    }
+
+    if (e.target.closest('.comment-time')) return;
+
+    const head = e.target.closest('.comment-head');
+    if (head && itemView.contains(head)) {
+      const li = head.parentElement;
+      if (li && li.classList.contains('comment')) {
+        setCommentCollapsed(li, !li.classList.contains('collapsed'));
+      }
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const head = e.target;
+    if (!head.classList || !head.classList.contains('comment-head')) return;
+    if (!itemView.contains(head)) return;
+    e.preventDefault();
+    const li = head.parentElement;
+    if (li && li.classList.contains('comment')) {
+      setCommentCollapsed(li, !li.classList.contains('collapsed'));
+    }
   });
 
   window.addEventListener('hashchange', route);
